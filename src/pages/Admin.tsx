@@ -5,6 +5,16 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
 import Navigation from '../components/Navigation';
 
+const professionalFields = [
+  'IT',
+  'Elektrik-Elektronik',
+  'Kimya',
+  'Mobilya',
+  'Biyomedikal',
+  'HVAC',
+  'Mekanik',
+];
+
 interface Course {
   id: string;
   title: string;
@@ -407,12 +417,18 @@ export default function Admin() {
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.field')}</label>
-                      <input
-                        type="text"
+                      <select
                         value={editingItem.field}
                         onChange={(e) => setEditingItem({ ...editingItem, field: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                      >
+                        <option value="">{t('auth.selectField')}</option>
+                        {professionalFields.map((field) => (
+                          <option key={field} value={field}>
+                            {field}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.title')}</label>
