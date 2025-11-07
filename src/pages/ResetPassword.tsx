@@ -126,6 +126,7 @@ export default function ResetPassword() {
                   <p className="font-medium mb-1">Şifre başarıyla sıfırlandı!</p>
                   <p>Artık yeni şifrenizle giriş yapabilirsiniz.</p>
                 </div>
+                <div></div>
                 <a
                   href="/login"
                   className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
