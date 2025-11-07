@@ -129,7 +129,7 @@ export default function ResetPassword() {
                 <div></div>
                 <a
                   href="/login"
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">Giriş Sayfasına Git</a>
+                   className="block text-center text-sm text-blue-600 hover:text-blue-700 font-medium">Giriş Sayfasına Git</a>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="mt-8 space-y-6">
