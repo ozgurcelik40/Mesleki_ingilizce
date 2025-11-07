@@ -10,8 +10,10 @@ import FieldSelection from './pages/FieldSelection';
 import Courses from './pages/Courses';
 import LearningModule from './pages/LearningModule';
 import Admin from './pages/Admin';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
-type Route = '/' | '/login' | '/signup' | '/dashboard' | '/profile' | '/field-selection' | '/courses' | '/learning-module' | '/admin';
+type Route = '/' | '/login' | '/signup' | '/dashboard' | '/profile' | '/field-selection' | '/courses' | '/learning-module' | '/admin' | '/forgot-password' | '/reset-password';
 
 function Router() {
   const [currentRoute, setCurrentRoute] = useState<Route>('/');
@@ -32,7 +34,7 @@ function Router() {
 
   useEffect(() => {
     if (!loading) {
-      if (user && (currentRoute === '/' || currentRoute === '/login' || currentRoute === '/signup')) {
+      if (user && (currentRoute === '/' || currentRoute === '/login' || currentRoute === '/signup' || currentRoute === '/forgot-password')) {
         window.history.pushState({}, '', '/dashboard');
         setCurrentRoute('/dashboard');
       } else if (!user && (currentRoute === '/dashboard' || currentRoute === '/profile' || currentRoute === '/field-selection' || currentRoute === '/courses' || currentRoute === '/learning-module' || currentRoute === '/admin')) {
@@ -58,6 +60,10 @@ function Router() {
       return <Login />;
     case '/signup':
       return <Signup />;
+    case '/forgot-password':
+      return <ForgotPassword />;
+    case '/reset-password':
+      return <ResetPassword />;
     case '/dashboard':
       return <Dashboard />;
     case '/profile':
