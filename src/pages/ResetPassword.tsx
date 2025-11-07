@@ -43,8 +43,8 @@ export default function ResetPassword() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError('Şifre en az 6 karakter olmalıdır');
+    if (newPassword.length < 8) {
+      setError('Şifre en az 8 karakter olmalıdır');
       return;
     }
 
