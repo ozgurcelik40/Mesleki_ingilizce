@@ -17,10 +17,21 @@ export default function ResetPassword() {
 
   useEffect(() => {
     const checkSession = async () => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const { data: { session } } = await supabase.auth.getSession();
       setSessionValid(!!session);
     };
+
     checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
+        setSessionValid(!!session);
+      }
+    });
+
+    return () => subscription?.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
