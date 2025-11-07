@@ -75,8 +75,8 @@ export default function ResetPassword() {
                 <div className="flex items-center space-x-2">
                   <GraduationCap className="w-8 h-8 text-blue-600" />
                   <span className="text-2xl font-bold">
-                    <span className="text-gray-900">Vocation</span>
-                    <span className="text-blue-600">English</span>
+                    <span className="text-gray-900">Mesleki</span>
+                    <span className="text-blue-600">İngilizce</span>
                   </span>
                 </div>
               </div>
@@ -107,8 +107,8 @@ export default function ResetPassword() {
               <div className="flex items-center space-x-2">
                 <GraduationCap className="w-8 h-8 text-blue-600" />
                 <span className="text-2xl font-bold">
-                  <span className="text-gray-900">Vocation</span>
-                  <span className="text-blue-600">English</span>
+                  <span className="text-gray-900">Mesleki</span>
+                  <span className="text-blue-600">İngilizce</span>
                 </span>
               </div>
             </div>
