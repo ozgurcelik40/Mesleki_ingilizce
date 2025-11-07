@@ -56,6 +56,9 @@ export default function ResetPassword() {
         setError('Şifre güncellenemedi. Lütfen tekrar deneyin.');
       } else {
         setSuccess(true);
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
       }
     } catch (err) {
       setError('Beklenmeyen bir hata oluştu');
@@ -124,12 +127,8 @@ export default function ResetPassword() {
                 </div>
                 <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
                   <p className="font-medium mb-1">Şifre başarıyla sıfırlandı!</p>
-                  <p>Artık yeni şifrenizle giriş yapabilirsiniz.</p>
+                  <p>Kontrol paneline yönlendiriliyorsunuz...</p>
                 </div>
-                <div></div>
-                <a
-                  href="/login"
-                   className="block text-center text-sm text-blue-600 hover:text-blue-700 font-medium">Giriş Sayfasına Git</a>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="mt-8 space-y-6">
