@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { GraduationCap, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import Navigation from '../components/Navigation';
 
@@ -12,21 +11,22 @@ export default function ResetPassword() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [sessionValid, setSessionValid] = useState(false);
-  const { updatePassword } = useAuth();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const checkSession = async () => {
-      await new Promise(resolve => setTimeout(resolve, 500));
+    const checkToken = async () => {
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await supabase.auth.signOut();
+      if (!session) {
+        setError('Oturum geçersiz');
+        return;
       }
-      setSessionValid(!!session);
+
+      setIsReady(true);
     };
 
-    checkSession();
+    checkToken();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,11 +46,15 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const { error } = await updatePassword(newPassword);
-      if (error) {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
         setError('Şifre güncellenemedi. Lütfen tekrar deneyin.');
       } else {
         setSuccess(true);
+        await supabase.auth.signOut();
         setTimeout(() => {
           window.location.href = '/login';
         }, 2000);
@@ -62,7 +66,7 @@ export default function ResetPassword() {
     }
   };
 
-  if (!sessionValid) {
+  if (error && !isReady) {
     return (
       <>
         <Navigation />
@@ -88,6 +92,33 @@ export default function ResetPassword() {
               >
                 Şifre Sıfırlama Sayfasına Dön
               </a>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!isReady) {
+    return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 pt-20">
+          <div className="w-full max-w-md">
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <div className="flex items-center justify-center mb-8">
+                <div className="flex items-center space-x-2">
+                  <GraduationCap className="w-8 h-8 text-blue-600" />
+                  <span className="text-2xl font-bold">
+                    <span className="text-gray-900">Mesleki</span>
+                    <span className="text-blue-600">İngilizce</span>
+                  </span>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Yükleniyor...</p>
+              </div>
             </div>
           </div>
         </div>
