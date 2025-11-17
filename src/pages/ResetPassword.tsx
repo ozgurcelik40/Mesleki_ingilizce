@@ -20,18 +20,13 @@ export default function ResetPassword() {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.auth.signOut();
+      }
       setSessionValid(!!session);
     };
 
     checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN') {
-        setSessionValid(!!session);
-      }
-    });
-
-    return () => subscription?.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,7 +52,7 @@ export default function ResetPassword() {
       } else {
         setSuccess(true);
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          window.location.href = '/login';
         }, 2000);
       }
     } catch (err) {
@@ -127,7 +122,7 @@ export default function ResetPassword() {
                 </div>
                 <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
                   <p className="font-medium mb-1">Şifre başarıyla sıfırlandı!</p>
-                  <p>Kontrol paneline yönlendiriliyorsunuz...</p>
+                  <p>Giriş sayfasına yönlendiriliyorsunuz. Lütfen yeni şifrenizle giriş yapın.</p>
                 </div>
               </div>
             ) : (
