@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  recoveryMode: boolean;
   signUp: (email: string, password: string, firstName: string, lastName: string, professionalField: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
@@ -20,9 +21,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recoveryMode, setRecoveryMode] = useState(false);
 
   useEffect(() => {
+    if (window.location.pathname === '/reset-password') {
+      setRecoveryMode(true);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (window.location.pathname === '/reset-password') {
+        setUser(session?.user ?? null);
+        setLoading(false);
+        return;
+      }
+
       setUser(session?.user ?? null);
       if (session?.user) {
         loadProfile(session.user.id);
@@ -32,15 +44,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      (() => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setRecoveryMode(true);
         setUser(session?.user ?? null);
-        if (session?.user) {
-          loadProfile(session.user.id);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-      })();
+        setLoading(false);
+        return;
+      }
+
+      if (event === 'SIGNED_OUT') {
+        setRecoveryMode(false);
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      setRecoveryMode(false);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile(session.user.id);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -177,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     profile,
     loading,
+    recoveryMode,
     signUp,
     signIn,
     signOut,

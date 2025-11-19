@@ -17,7 +17,7 @@ type Route = '/' | '/login' | '/signup' | '/dashboard' | '/profile' | '/field-se
 
 function Router() {
   const [currentRoute, setCurrentRoute] = useState<Route>('/');
-  const { user, loading } = useAuth();
+  const { user, loading, recoveryMode } = useAuth();
 
   useEffect(() => {
     const path = window.location.pathname as Route;
@@ -34,6 +34,14 @@ function Router() {
 
   useEffect(() => {
     if (!loading) {
+      if (recoveryMode) {
+        if (currentRoute !== '/reset-password') {
+          window.history.pushState({}, '', '/reset-password');
+          setCurrentRoute('/reset-password');
+        }
+        return;
+      }
+
       if (user && (currentRoute === '/' || currentRoute === '/login' || currentRoute === '/signup' || currentRoute === '/forgot-password')) {
         window.history.pushState({}, '', '/dashboard');
         setCurrentRoute('/dashboard');
@@ -42,7 +50,7 @@ function Router() {
         setCurrentRoute('/login');
       }
     }
-  }, [user, loading, currentRoute]);
+  }, [user, loading, currentRoute, recoveryMode]);
 
   if (loading) {
     return (
