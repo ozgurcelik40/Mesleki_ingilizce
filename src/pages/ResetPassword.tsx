@@ -14,11 +14,21 @@ export default function ResetPassword() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const checkToken = async () => {
-      await new Promise(resolve => setTimeout(resolve, 300));
-
+    const initializeReset = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+
+      if (session) {
+        await supabase.auth.signOut();
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const { data: { session: newSession } } = await supabase.auth.getSession();
+        if (!newSession) {
+          setError('Oturum geçersiz');
+          return;
+        }
+      } else {
         setError('Oturum geçersiz');
         return;
       }
@@ -26,7 +36,7 @@ export default function ResetPassword() {
       setIsReady(true);
     };
 
-    checkToken();
+    initializeReset();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
