@@ -14,29 +14,46 @@ export default function ResetPassword() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const initializeReset = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    const checkRecoveryToken = async () => {
+      const hash = window.location.hash.substring(1);
 
-      if (session) {
-        await supabase.auth.signOut();
-        window.history.replaceState({}, document.title, window.location.pathname);
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        const { data: { session: newSession } } = await supabase.auth.getSession();
-        if (!newSession) {
-          setError('Oturum geçersiz');
-          return;
-        }
-      } else {
-        setError('Oturum geçersiz');
+      if (!hash) {
+        setError('Şifre sıfırlama bağlantısı bulunamadı');
         return;
       }
 
-      setIsReady(true);
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get('access_token');
+      const type = params.get('type');
+
+      if (!accessToken || type !== 'recovery') {
+        setError('Geçersiz bağlantı');
+        return;
+      }
+
+      try {
+        await supabase.auth.signOut();
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        const { data, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: '',
+        });
+
+        if (sessionError || !data.session) {
+          setError('Oturum başlatılamadı. Lütfen tekrar deneyin.');
+          return;
+        }
+
+        window.history.replaceState({}, document.title, '/reset-password');
+        setIsReady(true);
+      } catch (err) {
+        setError('Beklenmeyen bir hata oluştu');
+      }
     };
 
-    initializeReset();
+    checkRecoveryToken();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,7 +111,7 @@ export default function ResetPassword() {
               </div>
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                 <p className="font-medium">Oturum geçersiz</p>
-                <p className="mt-1">Şifre sıfırlama bağlantısı ya süresi dolmuş ya da geçersiz. Lütfen tekrar deneyin.</p>
+                <p className="mt-1">{error}</p>
               </div>
               <a
                 href="/forgot-password"
