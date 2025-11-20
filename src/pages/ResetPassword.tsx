@@ -1,18 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GraduationCap, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-import { supabase as globalSupabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import Navigation from '../components/Navigation';
-
-// Create a local client that doesn't persist sessions
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false // This prevents the session from being saved to local storage
-  }
-});
 
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
@@ -25,48 +14,36 @@ export default function ResetPassword() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const checkRecoveryToken = async () => {
-      const hash = window.location.hash.substring(1);
+    const checkSession = async () => {
+      // The global supabase client automatically handles the hash fragment
+      // and establishes a session. We just need to check if we have one.
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!hash) {
-        setError('Şifre sıfırlama bağlantısı bulunamadı');
-        return;
-      }
-
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get('access_token');
-      const type = params.get('type');
-
-      if (!accessToken || type !== 'recovery') {
-        setError('Geçersiz bağlantı');
-        return;
-      }
-
-      try {
-        // Ensure global client is signed out just in case, though we won't use it for the reset
-        await globalSupabase.auth.signOut();
-
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Use the local non-persisting client to set the session
-        const { data, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: '',
+      if (session) {
+        setIsReady(true);
+      } else {
+        // Give it a moment in case the session is being established
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'PASSWORD_RECOVERY' || session) {
+            setIsReady(true);
+          }
         });
 
-        if (sessionError || !data.session) {
-          setError('Oturum başlatılamadı. Lütfen tekrar deneyin.');
-          return;
-        }
+        // If still no session after a short delay, show error
+        setTimeout(async () => {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (!currentSession) {
+            setError('Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş.');
+          }
+        }, 2000);
 
-        window.history.replaceState({}, document.title, '/reset-password');
-        setIsReady(true);
-      } catch (err) {
-        setError('Beklenmeyen bir hata oluştu');
+        return () => {
+          subscription.unsubscribe();
+        };
       }
     };
 
-    checkRecoveryToken();
+    checkSession();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,7 +63,6 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      // Use the local client to update the user's password
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -95,7 +71,7 @@ export default function ResetPassword() {
         setError('Şifre güncellenemedi. Lütfen tekrar deneyin.');
       } else {
         setSuccess(true);
-        // Sign out from the local client to clean up
+        // Sign out to require fresh login with new password
         await supabase.auth.signOut();
         setTimeout(() => {
           window.location.href = '/login';
