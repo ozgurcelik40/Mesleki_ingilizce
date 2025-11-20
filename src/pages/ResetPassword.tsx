@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react';
 import { GraduationCap, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+import { supabase as globalSupabase } from '../lib/supabase';
 import Navigation from '../components/Navigation';
+
+// Create a local client that doesn't persist sessions
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false // This prevents the session from being saved to local storage
+  }
+});
 
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
@@ -32,10 +43,12 @@ export default function ResetPassword() {
       }
 
       try {
-        await supabase.auth.signOut();
+        // Ensure global client is signed out just in case, though we won't use it for the reset
+        await globalSupabase.auth.signOut();
 
         await new Promise(resolve => setTimeout(resolve, 300));
 
+        // Use the local non-persisting client to set the session
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: '',
@@ -73,6 +86,7 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
+      // Use the local client to update the user's password
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -81,6 +95,7 @@ export default function ResetPassword() {
         setError('Şifre güncellenemedi. Lütfen tekrar deneyin.');
       } else {
         setSuccess(true);
+        // Sign out from the local client to clean up
         await supabase.auth.signOut();
         setTimeout(() => {
           window.location.href = '/login';
@@ -96,7 +111,7 @@ export default function ResetPassword() {
   if (error && !isReady) {
     return (
       <>
-        <Navigation />
+        <Navigation currentPage="home" />
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 pt-20">
           <div className="w-full max-w-md">
             <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -129,7 +144,7 @@ export default function ResetPassword() {
   if (!isReady) {
     return (
       <>
-        <Navigation />
+        <Navigation currentPage="home" />
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 pt-20">
           <div className="w-full max-w-md">
             <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -155,7 +170,7 @@ export default function ResetPassword() {
 
   return (
     <>
-      <Navigation />
+      <Navigation currentPage="home" />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 pt-20">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8">
