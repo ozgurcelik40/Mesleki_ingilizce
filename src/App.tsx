@@ -36,7 +36,7 @@ function Router() {
     if (!loading) {
       if (recoveryMode) {
         if (currentRoute !== '/reset-password') {
-          window.history.pushState({}, '', '/reset-password');
+          window.history.pushState({}, '', '/reset-password' + window.location.hash);
           setCurrentRoute('/reset-password');
         }
         return;
