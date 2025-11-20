@@ -68,7 +68,7 @@ export default function ResetPassword() {
       });
 
       if (updateError) {
-        setError('Şifre güncellenemedi. Lütfen tekrar deneyin.');
+        setError('Şifre güncellenemedi. Lütfen tekrar deneyin.' + updateError.message);
       } else {
         setSuccess(true);
         // Sign out to require fresh login with new password
